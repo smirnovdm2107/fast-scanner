@@ -2,6 +2,7 @@ package fastscanner;
 
 import javax.crypto.spec.PSource;
 import java.io.InputStream;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 public class FastScanner {
@@ -17,9 +18,28 @@ public class FastScanner {
         this(new InputStreamCharSource(inputStream));
     }
 
-    public String next() {
-        skipWhitespaces();
+    // whitespace method -> method that calls whitespace method in the beginning
+    @FunctionalInterface
+    private interface SkipWhitespaceMethod {
+        void run();
+    }
 
+    private void callWhitespaceMethod(SkipWhitespaceMethod method) {
+        skipWhitespaces();
+        method.run();
+    }
+
+    public String next() {
+        StringBuilder sb = new StringBuilder();
+        while(test(FastScanner::isWhitespace)) {
+            sb.append(take());
+        }
+        return sb.toString();
+
+    }
+
+    public int nextInt() {
+        return 0;
     }
 
     private void expect(char expected) {
@@ -47,13 +67,31 @@ public class FastScanner {
         return result;
     }
 
+    private boolean test(Predicate<Character> predicate) {
+        Objects.requireNonNull(predicate);
+        return predicate.test(ch);
+    }
+
+    private boolean test(char expected) {
+        return expected == ch;
+    }
+
     private boolean isEnd() {
         return !source.hasNext();
     }
 
     private void skipWhitespaces() {
-        while(Character.isWhitespace(ch)) {
+        while(isWhitespace(ch)) {
             take();
         }
     }
+
+    private static boolean isWhitespace(char ch) {
+        return Character.isWhitespace(ch);
+    }
+
+    public void close() {
+        source.close();
+    }
+
 }
