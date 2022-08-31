@@ -2,7 +2,9 @@ package fastscanner;
 
 import javax.crypto.spec.PSource;
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class FastScanner {
@@ -20,28 +22,46 @@ public class FastScanner {
 
     // whitespace method -> method that calls whitespace method in the beginning
     @FunctionalInterface
-    private interface SkipWhitespaceMethod {
-        void run();
+    private interface SkipWhitespaceMethod<T> {
+        T run();
     }
 
-    private void callWhitespaceMethod(SkipWhitespaceMethod method) {
+    private <T> T callWhitespaceMethod(SkipWhitespaceMethod<T> method) {
         skipWhitespaces();
-        method.run();
+        return method.run();
     }
 
     public String next() {
-        StringBuilder sb = new StringBuilder();
-        while(test(FastScanner::isWhitespace)) {
-            sb.append(take());
-        }
-        return sb.toString();
-
+        return callWhitespaceMethod(() -> takeWhile((ch) -> !isWhitespace(ch)));
     }
 
     public int nextInt() {
-        return 0;
+        return nextNumber(Integer::parseInt);
     }
 
+    public long nextLong() {
+        return nextNumber(Long::parseLong);
+    }
+
+    public BigInteger nextBigInteger() {
+        return nextNumber(BigInteger::new);
+    }
+
+    public <T> T nextNumber(Function<String, T> parseFunction) {
+        return callWhitespaceMethod(() -> {
+            return parseFunction.apply(new StringBuilder()
+                    .append(take('-') ? '-' : "")
+                    .append(takeWhile(Character::isDigit)).toString());
+        });
+    }
+
+    private String takeWhile(Predicate<Character> predicate) {
+        StringBuilder sb = new StringBuilder();
+        while(predicate.test(ch)) {
+            sb.append(take());
+        }
+        return sb.toString();
+    }
     private void expect(char expected) {
         if (take(expected)) {
             return;
@@ -52,6 +72,9 @@ public class FastScanner {
         return take((ch) -> {return ch == expected;});
     }
 
+    private boolean between(char min, char max) {
+        return test((ch) -> min <= ch && ch <= max);
+    }
     private boolean take(Predicate<Character> predicate) {
         if (predicate.test(ch)) {
             take();
