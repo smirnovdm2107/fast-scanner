@@ -12,9 +12,13 @@ public class FastScanner {
     private static final char END = '\0';
     private char ch;
 
+    public FastScanner (String string) {
+        this(new StringCharSource(string));
+    }
+
     public FastScanner(CharSource source) {
         this.source = source;
-        this.ch = take();
+        this.ch = source.next();
     }
     public FastScanner(InputStream inputStream) {
         this(new InputStreamCharSource(inputStream));
@@ -32,7 +36,7 @@ public class FastScanner {
     }
 
     public String next() {
-        return callWhitespaceMethod(() -> takeWhile((ch) -> !isWhitespace(ch)));
+        return callWhitespaceMethod(() -> takeWhile(FastScanner::isTokenPart));
     }
 
     public int nextInt() {
@@ -49,9 +53,8 @@ public class FastScanner {
 
     public <T> T nextNumber(Function<String, T> parseFunction) {
         return callWhitespaceMethod(() -> {
-            return parseFunction.apply(new StringBuilder()
-                    .append(take('-') ? '-' : "")
-                    .append(takeWhile(Character::isDigit)).toString());
+            return parseFunction.apply((take('-') ? '-' : "") +
+                    takeWhile(Character::isDigit));
         });
     }
 
@@ -69,7 +72,7 @@ public class FastScanner {
         throw new IllegalArgumentException(String.format("expected %s, found %s", expected, ch));
     }
     private boolean take(char expected) {
-        return take((ch) -> {return ch == expected;});
+        return take((ch) -> ch == expected);
     }
 
     private boolean between(char min, char max) {
@@ -108,6 +111,11 @@ public class FastScanner {
             take();
         }
     }
+
+    private static boolean isTokenPart(char ch) {
+        return !isWhitespace(ch) && !(ch == END);
+    }
+
 
     private static boolean isWhitespace(char ch) {
         return Character.isWhitespace(ch);

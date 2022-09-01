@@ -10,6 +10,7 @@ public class StringCharSource implements CharSource {
     public StringCharSource(String source) {
         Objects.requireNonNull(source);
         this.source = source;
+
     }
 
     @Override
@@ -26,7 +27,7 @@ public class StringCharSource implements CharSource {
 
     @Override
     public boolean hasNext() {
-        return pos == source.length();
+        return pos != source.length();
     }
 
     @Override
